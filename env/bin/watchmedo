@@ -1,4 +1,4 @@
-#!/home/reza/Documents/GitHub/nike_sales_dashboard/env/bin/python3
+#!/home/reza/Documents/GitHub/nike_sales_dashboard/env/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
