@@ -16,7 +16,6 @@ st.set_page_config(
 # Load Dataset
 @st.cache_data
 def load_data():
-    # Pastikan file vgsales.csv berada di direktori yang sama
     df = pd.read_csv("vgsales.csv")
     df = df.dropna()
     return df
@@ -36,40 +35,30 @@ st.write("---")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Sales by Platform and Region")
+    st.subheader("Sum of Games Sales by Regions")
     
-    # PERBAIKAN: Mengganti Stacked Bar ber-arsiran dengan Grouped Bar Chart Plotly yang bersih
-    platform_region_sales = df.groupby('Platform')[['NA_Sales', 'EU_Sales', 'JP_Sales', 'Other_Sales']].sum().reset_index()
-    top_platforms = platform_region_sales.sort_values(by='NA_Sales', ascending=False).head(5)
+    # Ringkasan Penjualan Berdasarkan Region
+    region_sales = df[['NA_Sales', 'EU_Sales', 'JP_Sales', 'Other_Sales']].sum().reset_index()
+    region_sales.columns = ['Region', 'Sales']
+    region_sales['Region'] = region_sales['Region'].str.replace('_Sales', '')
     
-    melted_df = top_platforms.melt(
-        id_vars='Platform', 
-        value_vars=['NA_Sales', 'EU_Sales', 'JP_Sales', 'Other_Sales'],
-        var_name='Region', 
-        value_name='Sales'
-    )
-    
-    # Membersihkan nama region agar lebih rapi saat ditampilkan
-    melted_df['Region'] = melted_df['Region'].str.replace('_Sales', '')
-    
-    fig_platform = px.bar(
-        melted_df,
-        x='Platform',
+    fig_region = px.bar(
+        region_sales,
+        x='Region',
         y='Sales',
         color='Region',
-        barmode='group', # Berkelompok (grouped) agar mudah dibandingkan tanpa arsiran rumit
-        title='Top Platforms Sales by Region',
-        labels={'Sales': 'Jumlah Penjualan (juta unit)', 'Platform': 'Platform'},
+        title='Total Sales by Region (Million Units)',
         color_discrete_sequence=px.colors.qualitative.Prism
     )
-    fig_platform.update_layout(
+    fig_region.update_layout(
         template="plotly_dark",
-        yaxis=dict(rangemode="tozero")
+        yaxis=dict(rangemode="tozero"),
+        showlegend=False
     )
-    st.plotly_chart(fig_platform, use_container_width=True)
+    st.plotly_chart(fig_region, use_container_width=True)
 
 with col2:
-    st.subheader("Global Sales Every 5 Year")
+    st.subheader("Global Sales Trend Over Time")
     
     # Line chart tren penjualan global per tahun
     yearly_sales = df.groupby('Year')['Global_Sales'].sum().reset_index()
@@ -80,7 +69,7 @@ with col2:
         x='Year',
         y='Global_Sales',
         markers=True,
-        title='Global Sales Trend Over Time',
+        title='Global Sales Trend Over Years',
         labels={'Global_Sales': 'Global Sales (juta unit)', 'Year': 'Year'}
     )
     fig_year.update_layout(
@@ -88,6 +77,32 @@ with col2:
         yaxis=dict(rangemode="tozero")
     )
     st.plotly_chart(fig_year, use_container_width=True)
+
+st.write("---")
+
+# --- GRAFIK PENGGANTI BARU: PLOTLY TREEMAP (Hierarki Publisher & Genre) ---
+st.subheader("Hierarchical Breakdown: Top Publishers & Genres by Global Sales")
+st.markdown("Grafik Interaktif Treemap untuk melihat proporsi penjualan berdasarkan Publisher, Genre, dan Game.")
+
+# Memfilter top publisher agar visualisasi treemap tetap rapi dan tidak terlalu padat
+top_publishers = df.groupby('Publisher')['Global_Sales'].sum().reset_index().sort_values(by='Global_Sales', ascending=False).head(15)
+df_filtered = df[df['Publisher'].isin(top_publishers['Publisher'])]
+
+fig_treemap = px.treemap(
+    df_filtered,
+    path=['Publisher', 'Genre', 'Name'],
+    values='Global_Sales',
+    color='Global_Sales',
+    color_continuous_scale='Viridis',
+    title='Treemap of Top Publishers and Genres'
+)
+
+fig_treemap.update_layout(
+    template="plotly_dark",
+    margin=dict(t=50, l=25, r=25, b=25)
+)
+
+st.plotly_chart(fig_treemap, use_container_width=True)
 
 st.write("---")
 
