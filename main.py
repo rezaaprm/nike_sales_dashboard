@@ -32,21 +32,20 @@ st.success("Nike Dataset")
 st.dataframe(data=df, width=1500, use_container_width=True, hide_index=True)
 
 
+# --- Grafik 1: Top 5 Products by Reviews ---
 top_5_reviews = df.sort_values(by='reviews', ascending=False).head(5)
 
 fig, ax = plt.subplots(figsize=(10, 6))
 sns.barplot(y='product_name', x='reviews', data=top_5_reviews, palette='cividis', ax=ax)
 ax.set_title('Top 5 Products with The Most Reviews', fontsize=15)
-ax.set_xlabel('Product Name', fontsize=12)
-ax.set_ylabel('Review', fontsize=12)
-ax.tick_params(axis='x', rotation=90)
+ax.set_xlabel('Review Count', fontsize=12)
+ax.set_ylabel('Product Name', fontsize=12)
 
 plt.tight_layout()
 st.pyplot(fig)
-# plt.show()
 
 
-
+# --- Grafik 2: Top 5 Products by Listing Price ---
 top_5_listing_price = df.sort_values(by='listing_price', ascending=False).head(5)
 
 fig, ax = plt.subplots(figsize=(10, 6))
@@ -55,44 +54,35 @@ sns.barplot(y='product_name', x='listing_price', data=top_5_listing_price, palet
 ax.set_title('Top 5 Products with Highest Listing Price', fontsize=15)
 ax.set_xlabel('Listing Price', fontsize=12)
 ax.set_ylabel('Product Name', fontsize=12)
-ax.tick_params(axis='y')
 
 plt.tight_layout()
 st.pyplot(fig)
-# plt.show()
 
 
-
+# --- Grafik 3: Distribution of Top Sale Prices (Diperbaiki menggunakan histplot) ---
 top_price_amount = df.sort_values(by='sale_price', ascending=False).head(100)
 
-fig, ax = plt.subplots(figsize=(8, 4))
-sns.countplot(data=top_price_amount, x="sale_price", palette="viridis", ax=ax)
+fig, ax = plt.subplots(figsize=(10, 5))
+sns.histplot(data=top_price_amount, x="sale_price", kde=True, color="teal", ax=ax)
 
-ax.set_title("Count of Top Prices Amount", fontsize=14)
-ax.set_xlabel("Price", fontsize=14)
-ax.set_ylabel("Count", fontsize=14)
-ax.grid(axis='y')
+ax.set_title("Distribution of Top Sale Prices", fontsize=14)
+ax.set_xlabel("Sale Price", fontsize=14)
+ax.set_ylabel("Frequency", fontsize=14)
+ax.grid(axis='y', linestyle='--', alpha=0.7)
 
 plt.tight_layout()
 st.pyplot(fig)
-# plt.show()
 
 
-
-df3 = df[df['reviews'] == 9]
-filtered_df3 = df[df['rating'] == 5.0][["product_name", "sale_price", "rating", "reviews"]].sort_values("reviews", ascending=False)
-top_5_reviews = filtered_df3.sort_values(by="reviews", ascending=False).head(10)
-
-melted_df = top_5_reviews.melt(id_vars="product_name", value_vars=["rating", "reviews"], var_name="Metric", value_name="Value")
-df_new = melted_df.pivot_table(index="product_name", columns="Metric", values="Value", aggfunc="sum")
+# --- Grafik 4: Top Reviews for 5.0 Rated Products (Diperbaiki dari Stacked Chart yang Salah Skala) ---
+top_rated_products = df[df['rating'] == 5.0].sort_values(by="reviews", ascending=False).head(10)
 
 fig, ax = plt.subplots(figsize=(10, 6))
-df_new.plot(kind="bar", stacked=True, ax=ax, colormap="vlag")
+sns.barplot(y='product_name', x='reviews', data=top_rated_products, palette='viridis', ax=ax)
 
-ax.set_title("Comparison of Ratings and Reviews for Top 5 Products", fontsize=16)
-ax.set_xlabel("Product Name", fontsize=12)
-ax.set_ylabel("Rating / Review", fontsize=12)
-ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+ax.set_title("Top Reviews for 5.0 Rated Products", fontsize=16)
+ax.set_xlabel("Review Count", fontsize=12)
+ax.set_ylabel("Product Name", fontsize=12)
+
 plt.tight_layout()
 st.pyplot(fig)
-# plt.show()
